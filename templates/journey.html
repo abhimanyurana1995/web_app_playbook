@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Journey — Web App Playbook{% endblock %}
+
+{% block content %}
+<div class="journey-hero">
+  <h1>🗺️ The Web App Journey</h1>
+  <p>From zero to a deployed web app — one step at a time.</p>
+  <div class="tagline">It all starts with one idea.</div>
+</div>
+
+<div class="journey-container">
+  {% for step in steps %}
+  {%- set completed = step.step_id in completed_ids %}
+  <div class="journey-step" id="{{ step.step_id }}">
+    <div class="step-line">
+      <div class="step-num {% if completed %}done{% endif %}">
+        {% if completed %}✓{% else %}{{ step.order }}{% endif %}
+      </div>
+      {% if not loop.last %}
+      <div class="step-connector {% if completed %}done{% endif %}"></div>
+      {% endif %}
+    </div>
+    <div class="step-card {% if completed %}done{% endif %}">
+      <div class="step-card-top">
+        <div class="step-emoji">{{ step.emoji }}</div>
+        <div>
+          <h3>{{ step.title }}</h3>
+          <div class="step-tagline">{{ step.tagline }}</div>
+        </div>
+      </div>
+
+      <p>{{ step.description }}</p>
+
+      {% if step.instructions %}
+      <ul class="step-instructions">
+        {% for inst in step.instructions %}
+        <li>{{ inst }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      {% if step.linked_topics %}
+      <div class="step-links">
+        {% for topic_id in step.linked_topics %}
+        {%- set parts = topic_id.split('-') %}
+        {%- set tech = parts[0] %}
+        {%- set topic_name = topic_names.get(topic_id, topic_id) %}
+        <span class="step-link-pill" data-tech="{{ tech }}"
+              onclick="goToTopic('{{ topic_id }}', '{{ tech }}')">
+          {{ topic_name }}
+        </span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="step-checkpoint">✅ Checkpoint: {{ step.checkpoint }}</div>
+
+      <div class="step-complete-row">
+        <div class="step-check {% if completed %}checked{% endif %}"
+             id="check-{{ step.step_id }}"
+             onclick="toggleStep('{{ step.step_id }}', this)">
+          {% if completed %}✓{% endif %}
+        </div>
+        <span class="step-complete-label">
+          {% if completed %}Done!{% else %}Mark as complete{% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function toggleStep(stepId, el) {
+  const isChecked = el.classList.contains("checked");
+  const newState  = !isChecked;
+
+  el.classList.toggle("checked", newState);
+  el.textContent = newState ? "✓" : "";
+
+  const card = el.closest(".step-card");
+  card.classList.toggle("done", newState);
+
+  const stepNum = el.closest(".journey-step").querySelector(".step-num");
+  stepNum.classList.toggle("done", newState);
+  stepNum.textContent = newState ? "✓" : el.closest(".journey-step").querySelector(".step-num").dataset.order || stepNum.textContent;
+
+  const label = el.nextElementSibling;
+  if (label) label.textContent = newState ? "Done!" : "Mark as complete";
+
+  await fetch(`/api/journey/${stepId}`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({completed: newState})
+  });
+}
+
+// Clicking a topic pill navigates to the reference page with that topic open
+function goToTopic(topicId, tech) {
+  window.location = `/?tab=${tech}&topic=${topicId}`;
+}
+
+// If arriving from journey with ?tab=X&topic=Y, open it
+document.addEventListener("DOMContentLoaded", () => {
+  // mode buttons
+  document.querySelectorAll(".mode-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.mode === "beginner");
+  });
+});
+</script>
+{% endblock %}

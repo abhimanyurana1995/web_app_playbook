@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Web App Playbook — HTML · CSS · JS · Python · SQL{% endblock %}
+
+{% block content %}
+<div class="tech-tabs">
+  {% for key, tech in TECH.items() %}
+  <button class="tab-btn {% if loop.first %}active{% endif %}" data-tab="{{ key }}"
+          onclick="showTab('{{ key }}')">{{ tech.emoji }} {{ tech.label }}</button>
+  {% endfor %}
+</div>
+
+{% for key, tech in TECH.items() %}
+<div class="tab-panel {% if loop.first %}active{% endif %}" data-tab="{{ key }}">
+  <div class="panel-intro">
+    <div class="big-em">{{ tech.emoji }}</div>
+    <div>
+      <h2 style="color:{{ tech.color }}">{{ tech.label }}</h2>
+      <p>{{ tech.intro }}</p>
+      <span class="analogy-pill">{{ tech.analogy }}</span>
+    </div>
+  </div>
+  <div class="topic-grid">
+    {% for topic in tech.topics %}
+    {%- set header_html %}
+      <div class="dp-emoji">{{ topic.emoji }}</div>
+      <div>
+        <div class="dp-title" style="color:{{ tech.color }}">{{ topic.name }}</div>
+        <div class="dp-sub">{{ tech.label }} · {{ topic.sub }}</div>
+      </div>
+      <div class="dp-actions">
+        <button class="dp-bookmark-btn" id="dpBookmarkBtn" onclick="toggleBookmark()" title="Bookmark">☆</button>
+        <button class="dp-close" onclick="closePanel()">✕</button>
+      </div>
+    {%- endset %}
+
+    {%- set body_html %}
+      {% for sec in topic.sections %}
+        {% if sec.t == "intro" %}
+          <div class="ds-intro">{{ sec.c }}</div>
+        {% elif sec.t == "heading" %}
+          <div class="ds-heading">{{ sec.c }}</div>
+        {% elif sec.t == "p" %}
+          <p class="ds-p">{{ sec.c }}</p>
+        {% elif sec.t == "warn" %}
+          <div class="ds-warn">{{ sec.c }}</div>
+        {% elif sec.t == "tip" %}
+          <div class="ds-tip">{{ sec.c }}</div>
+        {% elif sec.t == "code" %}
+          <pre class="ds-code">{{ sec.c | e }}</pre>
+        {% elif sec.t == "ai" %}
+          <div class="ds-ai">
+            <div class="ai-label">🤖 Ask AI to…</div>
+            <ul>{% for item in sec['items'] %}<li>{{ item }}</li>{% endfor %}</ul>
+          </div>
+        {% elif sec.t == "rule" %}
+          <div class="ds-rule">
+            <div class="rule-q">❓ {{ sec.q }}</div>
+            <div class="rule-a">{{ sec.a }}</div>
+          </div>
+        {% elif sec.t == "table" %}
+          <table class="ds-table">
+            <thead><tr>{% for h in sec['heads'] %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+            <tbody>{% for row in sec['rows'] %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+          </table>
+        {% elif sec.t == "types" %}
+          <div class="ds-types">
+            {% for item in sec['items'] %}
+            <div class="ds-type-card" style="background:{{ item.color }};border-color:{{ item.border }}">
+              <div class="type-name">{{ item.name }}</div>
+              <div class="type-eg">{{ item.eg }}</div>
+              <div class="type-when">{{ item.when }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    {%- endset %}
+
+    <div class="topic-card"
+         data-topic-id="{{ topic.id }}"
+         data-header-html="{{ header_html | e }}"
+         data-body-html="{{ body_html | e }}"
+         onclick="openTopic('{{ key }}', '{{ topic.id }}')">
+      <div class="tc-indicators">
+        <div class="tc-star">⭐</div>
+        <div class="tc-dot"></div>
+      </div>
+      <div class="tc-emoji">{{ topic.emoji }}</div>
+      <div class="tc-name">{{ topic.name }}</div>
+      <div class="tc-sub">{{ topic.sub }}</div>
+      <div class="tc-arrow">Click to explore →</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Web App Playbook{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo-stack">
+    <span class="logo-pill pill-html">HTML</span>
+    <span class="logo-pill pill-css">CSS</span>
+    <span class="logo-pill pill-js">JS</span>
+    <span class="logo-pill pill-py">Python</span>
+    <span class="logo-pill pill-sql">SQL</span>
+  </div>
+  <div>
+    <div class="header-title">Web App Playbook</div>
+    <div class="header-sub">It all starts with one idea.</div>
+  </div>
+  <div class="header-right">
+    <div class="progress-badge"><span id="progressCount">0</span> / <span id="progressTotal">0</span> explored</div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" data-mode="reference" onclick="setMode('reference'); window.location='/'">Reference</button>
+      <button class="mode-btn" data-mode="beginner" onclick="setMode('beginner'); window.location='/journey'">Journey</button>
+    </div>
+  </div>
+</header>
+
+{% block content %}{% endblock %}
+
+<!-- Slide-in detail panel -->
+<div class="overlay" id="overlay"></div>
+<div class="detail-panel" id="detailPanel">
+  <div class="dp-header" id="dpHeader"></div>
+  <div class="dp-body"   id="dpBody"></div>
+  <div class="dp-notes">
+    <label for="dpNotes">My Notes</label>
+    <textarea id="dpNotes" placeholder="Jot your thoughts here…"
+              oninput="onNoteInput(this, document.getElementById('notesSaved'))"></textarea>
+    <div class="notes-saved" id="notesSaved">Saved ✓</div>
+  </div>
+</div>
+
+<!-- Chat FAB -->
+<button class="chat-fab" id="chatFab" title="Ask AI about web development">💬</button>
+
+<!-- Chat Panel -->
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <div>
+      <div class="chat-header-title">🤖 Ask the Playbook</div>
+      <div class="chat-header-sub">Powered by gemma4 · runs locally · works offline</div>
+    </div>
+    <button class="chat-close" id="chatClose">✕</button>
+  </div>
+  <div id="chatContextTag" class="chat-context-tag" style="display:none"></div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-empty" id="chatEmpty">
+      <div class="ce-icon">💬</div>
+      <div class="ce-title">Ask anything about web development</div>
+      <div class="ce-hint">I know this entire playbook. Open any topic card first for context-aware answers.</div>
+      <div class="chat-suggestions">
+        <button class="chat-suggestion">How do I connect Flask to SQLite?</button>
+        <button class="chat-suggestion">What's the difference between flexbox and grid?</button>
+        <button class="chat-suggestion">How do I handle a form submit with fetch()?</button>
+        <button class="chat-suggestion">When should I use a class vs a function?</button>
+      </div>
+    </div>
+  </div>
+  <div class="chat-input-row">
+    <textarea class="chat-input" id="chatInput" rows="1" placeholder="Ask a question…"></textarea>
+    <button class="chat-send" id="chatSend">↑</button>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
