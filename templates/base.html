@@ -22,10 +22,12 @@
     <div class="header-sub">It all starts with one idea.</div>
   </div>
   <div class="header-right">
-    <div class="progress-badge"><span id="progressCount">0</span> / <span id="progressTotal">0</span> explored</div>
+    <div class="progress-badge"><span id="progressCount">0</span> / <span id="progressTotal">42</span> explored</div>
     <div class="mode-toggle">
-      <button class="mode-btn active" data-mode="reference" onclick="setMode('reference'); window.location='/'">Reference</button>
-      <button class="mode-btn" data-mode="beginner" onclick="setMode('beginner'); window.location='/journey'">Journey</button>
+      <button class="mode-btn {% if request.path == '/' %}active{% endif %}" data-mode="reference"
+              onclick="window.location='/'">Reference</button>
+      <button class="mode-btn {% if request.path == '/journey' %}active{% endif %}" data-mode="beginner"
+              onclick="window.location='/journey'">Journey</button>
     </div>
   </div>
 </header>

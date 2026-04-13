@@ -1,6 +1,27 @@
 {% extends "base.html" %}
 {% block title %}Web App Playbook — HTML · CSS · JS · Python · SQL{% endblock %}
 
+{% block extra_js %}
+<script>
+// Deep-link from Journey page: ?tab=python&topic=py-flask
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const tab    = params.get("tab");
+  const topic  = params.get("topic");
+  if (tab)   showTab(tab);
+  if (topic) {
+    // Need to find tech key for this topic
+    const card = document.querySelector(`[data-topic-id="${topic}"]`);
+    if (card) {
+      const panel = card.closest(".tab-panel");
+      const tech  = panel ? panel.dataset.tab : tab;
+      setTimeout(() => openTopic(tech, topic), 100);
+    }
+  }
+})();
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="tech-tabs">
   {% for key, tech in TECH.items() %}

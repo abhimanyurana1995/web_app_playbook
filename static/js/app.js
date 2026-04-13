@@ -162,7 +162,6 @@ async function loadProgress() {
   const data = await res.json();
   viewedIds  = new Set(data.progress.map(p => p.topic_id));
 
-  const total = document.querySelectorAll("[data-topic-id]").length;
   document.querySelectorAll(".tc-dot").forEach(el => {
     el.classList.toggle("visible", viewedIds.has(el.closest("[data-topic-id]")?.dataset.topicId));
   });
@@ -170,24 +169,10 @@ async function loadProgress() {
   // Update header badge
   const badge = document.getElementById("progressCount");
   if (badge) badge.textContent = viewedIds.size;
-  const total_badge = document.getElementById("progressTotal");
-  if (total_badge) total_badge.textContent = total;
 }
 
-
-/* ─── Mode Toggle ────────────────────────────────────────────── */
-function setMode(mode) {
-  localStorage.setItem("playbook_mode", mode);
-  document.querySelectorAll(".mode-btn").forEach(b => {
-    b.classList.toggle("active", b.dataset.mode === mode);
-  });
-}
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Restore mode from localStorage (default: reference)
-  const mode = localStorage.getItem("playbook_mode") || "reference";
-  setMode(mode);
-
   loadProgress();
   loadBookmarks();
 });
