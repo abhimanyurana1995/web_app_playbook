@@ -99,8 +99,8 @@
 
     <div class="topic-card"
          data-topic-id="{{ topic.id }}"
-         data-header-html="{{ header_html | e }}"
-         data-body-html="{{ body_html | e }}"
+         data-header-html="{{ header_html | forceescape }}"
+         data-body-html="{{ body_html | forceescape }}"
          onclick="openTopic('{{ key }}', '{{ topic.id }}')">
       <div class="tc-indicators">
         <div class="tc-star">⭐</div>

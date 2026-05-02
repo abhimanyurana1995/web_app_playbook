@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web App Playbook — Builder's Edition</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #0d0d0d;
+      --surface:      #141414;
+      --surface-2:    #1c1c1c;
+      --border:       #252525;
+      --text:         #dedede;
+      --text-muted:   #5a5a5a;
+      --text-dim:     #888;
+      --accent:       #c9a96e;
+      --accent-dim:   rgba(201,169,110,0.15);
+      --accent-glow:  rgba(201,169,110,0.08);
+      --broken-bg:    #1a0e0e;
+      --broken-border:#4a1e1e;
+      --broken-text:  #e07070;
+      --fixed-bg:     #0e1a12;
+      --fixed-border: #1e4a2a;
+      --sprint-bg:    #0e1018;
+      --sprint-border:#252d45;
+      --tradeoff-bg:  #11101a;
+      --tradeoff-border:#2d2545;
+      --sidebar-w:    240px;
+      --radius:       4px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      display: flex;
+    }
+
+    /* ── SIDEBAR ─────────────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 0; left: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 0 0 32px;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo .label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .sidebar-logo .title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .sidebar-logo .subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-section {
+      padding: 20px 0 8px;
+    }
+    .sidebar-section-label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0 24px;
+      margin-bottom: 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 24px;
+      cursor: pointer;
+      transition: background 0.15s;
+      text-decoration: none;
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+    .nav-item:hover { background: var(--surface-2); color: var(--text); }
+    .nav-item.active { color: var(--accent); background: var(--accent-glow); }
+    .nav-item.completed .nav-check { background: var(--accent); border-color: var(--accent); color: #000; }
+
+    .nav-check {
+      width: 16px; height: 16px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px;
+      transition: all 0.2s;
+    }
+    .nav-num {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      min-width: 16px;
+    }
+
+    .progress-bar-wrap {
+      margin-top: auto;
+      padding: 20px 24px 0;
+    }
+    .progress-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .progress-bar {
+      height: 2px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    /* ── MAIN CONTENT ─────────────────────────────────────── */
+    #main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      max-width: 800px;
+      padding: 60px 56px 120px;
+    }
+
+    /* ── INTRO ─────────────────────────────────────────────── */
+    .intro {
+      margin-bottom: 80px;
+    }
+    .intro .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+    .intro h1 {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .intro .lead {
+      font-size: 16px;
+      color: var(--text-dim);
+      line-height: 1.8;
+      max-width: 580px;
+      margin-bottom: 32px;
+    }
+
+    .how-it-works {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 24px;
+    }
+    .how-it-works h3 {
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .loop-steps {
+      display: flex;
+      gap: 0;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .loop-step {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 14px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .loop-step strong { color: var(--text); display: block; font-size: 11px; }
+    .loop-arrow { color: var(--border); font-size: 14px; }
+
+    .spine-card {
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-dim);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+    }
+    .spine-card .spine-label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .spine-card h3 { font-size: 15px; color: #fff; margin-bottom: 8px; }
+    .spine-card p { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+    /* ── PHASE ─────────────────────────────────────────────── */
+    .phase {
+      margin-bottom: 96px;
+      scroll-margin-top: 32px;
+    }
+
+    .phase-header {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .phase-num {
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-muted);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .phase-title-wrap {}
+    .phase-title-wrap h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .phase-title-wrap .phase-model {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    .phase-complete-btn {
+      margin-left: auto;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 11px;
+      padding: 6px 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      letter-spacing: 0.04em;
+    }
+    .phase-complete-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .phase-complete-btn.done { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+
+    /* ── MENTAL MODEL ─────────────────────────────────────── */
+    .mental-model {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 32px;
+    }
+    .mental-model .mm-label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    .mental-model p { color: var(--text-dim); font-size: 14px; line-height: 1.7; margin-bottom: 12px; }
+    .mental-model p:last-child { margin-bottom: 0; }
+
+    .flow-diagram {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin: 16px 0;
+      line-height: 2;
+      overflow-x: auto;
+    }
+    .flow-diagram .highlight { color: var(--accent); }
+    .flow-diagram .dim { color: var(--text-muted); }
+
+    /* ── BROKEN SCAFFOLD ──────────────────────────────────── */
+    .scaffold {
+      margin-bottom: 32px;
+    }
+    .scaffold-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .broken-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      padding: 3px 8px;
+      border-radius: 2px;
+      background: var(--broken-border);
+      color: var(--broken-text);
+      text-transform: uppercase;
+    }
+    .fixed-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      padding: 3px 8px;
+      border-radius: 2px;
+      background: var(--fixed-border);
+      color: #6dbf8a;
+      text-transform: uppercase;
+    }
+    .scaffold-header h3 { font-size: 15px; font-weight: 600; color: var(--text); }
+
+    .expect-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+    .expect-box strong { color: var(--text); display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+
+    .broken-code-wrap {
+      border: 1px solid var(--broken-border);
+      border-left: 3px solid var(--broken-text);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: var(--broken-bg);
+    }
+    .broken-code-wrap pre[class*="language-"] {
+      background: var(--broken-bg) !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+      font-size: 12.5px !important;
+    }
+
+    .fixed-code-wrap {
+      border: 1px solid var(--fixed-border);
+      border-left: 3px solid #6dbf8a;
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: var(--fixed-bg);
+    }
+    .fixed-code-wrap pre[class*="language-"] {
+      background: var(--fixed-bg) !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+      font-size: 12.5px !important;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .reveal-btn, .fix-btn, .think-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 12px;
+      padding: 7px 16px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .reveal-btn:hover { border-color: var(--broken-text); color: var(--broken-text); }
+    .fix-btn:hover { border-color: #6dbf8a; color: #6dbf8a; }
+    .think-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .bugs-list {
+      background: var(--broken-bg);
+      border: 1px solid var(--broken-border);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      margin-bottom: 16px;
+    }
+    .bugs-list h4 {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--broken-text);
+      margin-bottom: 12px;
+    }
+    .bug-item {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+    .bug-item:last-child { margin-bottom: 0; }
+    .bug-num {
+      color: var(--broken-text);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      min-width: 20px;
+    }
+    .bug-item p { color: var(--text-dim); line-height: 1.6; }
+    .bug-item code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11.5px;
+      background: rgba(255,255,255,0.06);
+      padding: 1px 5px;
+      border-radius: 2px;
+      color: var(--broken-text);
+    }
+
+    .why-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+    .why-box .why-label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .why-box p { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+
+    /* ── TRADE-OFF ─────────────────────────────────────────── */
+    .tradeoff {
+      background: var(--tradeoff-bg);
+      border: 1px solid var(--tradeoff-border);
+      border-radius: var(--radius);
+      margin-bottom: 32px;
+      overflow: hidden;
+    }
+    .tradeoff-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 22px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+    }
+    .tradeoff-trigger:hover { background: rgba(255,255,255,0.02); }
+    .tradeoff-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tradeoff-icon { font-size: 14px; }
+    .tradeoff-label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #9988cc;
+    }
+    .tradeoff-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-left: 4px;
+    }
+    .tradeoff-chevron {
+      font-size: 12px;
+      color: var(--text-muted);
+      transition: transform 0.2s;
+    }
+    .tradeoff.open .tradeoff-chevron { transform: rotate(180deg); }
+    .tradeoff-body {
+      padding: 0 22px 20px;
+      border-top: 1px solid var(--tradeoff-border);
+    }
+    .tradeoff-body p { font-size: 13px; color: var(--text-dim); line-height: 1.7; margin-top: 16px; }
+    .tradeoff-body p + p { margin-top: 10px; }
+    .tradeoff-body code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11.5px;
+      background: rgba(255,255,255,0.07);
+      padding: 2px 6px;
+      border-radius: 2px;
+      color: #b8a0e0;
+    }
+
+    /* ── SPRINT ────────────────────────────────────────────── */
+    .sprint {
+      background: var(--sprint-bg);
+      border: 1px solid var(--sprint-border);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 32px;
+      position: relative;
+    }
+    .sprint-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #7090d0;
+      margin-bottom: 10px;
+    }
+    .sprint h3 { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 12px; }
+    .sprint .constraint-tag {
+      display: inline-block;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      padding: 3px 10px;
+      border-radius: 2px;
+      background: rgba(112,144,208,0.15);
+      color: #7090d0;
+      margin-bottom: 14px;
+    }
+    .sprint p { font-size: 13px; color: var(--text-dim); line-height: 1.7; margin-bottom: 12px; }
+    .sprint ol, .sprint ul { padding-left: 20px; margin-bottom: 12px; }
+    .sprint li { font-size: 13px; color: var(--text-dim); line-height: 1.8; }
+    .sprint-complete-btn {
+      background: transparent;
+      border: 1px solid var(--sprint-border);
+      color: var(--text-dim);
+      font-size: 12px;
+      padding: 8px 18px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      margin-top: 8px;
+    }
+    .sprint-complete-btn:hover { border-color: #7090d0; color: #7090d0; }
+    .sprint-complete-btn.done { background: rgba(112,144,208,0.15); color: #7090d0; border-color: #7090d0; }
+
+    /* ── GENERAL TYPOGRAPHY ───────────────────────────────── */
+    h2 { font-size: 22px; }
+    h3 { font-size: 16px; }
+    p { font-size: 14px; color: var(--text-dim); line-height: 1.7; }
+
+    .section-note {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      background: rgba(255,255,255,0.07);
+      padding: 2px 6px;
+      border-radius: 2px;
+      color: var(--text);
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    .hidden { display: none !important; }
+
+    /* Prism overrides */
+    pre[class*="language-"] {
+      font-size: 12.5px !important;
+      border-radius: var(--radius) !important;
+      margin-bottom: 0 !important;
+    }
+    :not(pre) > code[class*="language-"],
+    pre[class*="language-"] {
+      background: var(--surface-2) !important;
+    }
+    code[class*="language-"] {
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace !important;
+    }
+
+    .plain-code-wrap {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .plain-code-wrap pre[class*="language-"] { margin: 0 !important; }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    @media (max-width: 900px) {
+      #sidebar { display: none; }
+      #main { margin-left: 0; padding: 40px 24px 80px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     SIDEBAR
+═══════════════════════════════════════════════════════════ -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="label">Web App Playbook</div>
+    <div class="title">Builder's Edition</div>
+    <div class="subtitle">Skill transfer over knowledge exposure</div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Orientation</div>
+    <a class="nav-item" href="#intro">
+      <span class="nav-num">00</span>
+      <div class="nav-check"></div>
+      How this works
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Build Phases</div>
+    <a class="nav-item" href="#phase-1" id="nav-phase-1">
+      <span class="nav-num">01</span>
+      <div class="nav-check" id="check-1">✓</div>
+      Request Lifecycle
+    </a>
+    <a class="nav-item" href="#phase-2" id="nav-phase-2">
+      <span class="nav-num">02</span>
+      <div class="nav-check" id="check-2">✓</div>
+      Route Design
+    </a>
+    <a class="nav-item" href="#phase-3" id="nav-phase-3">
+      <span class="nav-num">03</span>
+      <div class="nav-check" id="check-3">✓</div>
+      Data Flow
+    </a>
+    <a class="nav-item" href="#phase-4" id="nav-phase-4">
+      <span class="nav-num">04</span>
+      <div class="nav-check" id="check-4">✓</div>
+      State Taxonomy
+    </a>
+    <a class="nav-item" href="#phase-5" id="nav-phase-5">
+      <span class="nav-num">05</span>
+      <div class="nav-check" id="check-5">✓</div>
+      Failure Handling
+    </a>
+    <a class="nav-item" href="#phase-6" id="nav-phase-6">
+      <span class="nav-num">06</span>
+      <div class="nav-check" id="check-6">✓</div>
+      Deployment Reality
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Reference</div>
+    <a class="nav-item" href="web-app-playbook.html" target="_blank">
+      <span class="nav-num">→</span>
+      <div style="width:16px"></div>
+      Stack selector
+    </a>
+  </div>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-label">
+      <span>Progress</span>
+      <span id="progress-count">0 / 6</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════
+     MAIN
+═══════════════════════════════════════════════════════════ -->
+<main id="main">
+
+  <!-- INTRO ─────────────────────────────────────────────── -->
+  <div class="intro" id="intro">
+    <div class="eyebrow">Builder's Edition — v2</div>
+    <h1>The system that produces builders,<br>not readers.</h1>
+    <p class="lead">The original playbook explains what to pick and why. This one forces you to compose it. Every phase starts with a broken system. You diagnose it, fix it, and then stress-test your understanding with a constraint sprint.</p>
+
+    <div class="how-it-works">
+      <h3>The build loop</h3>
+      <div class="loop-steps">
+        <div class="loop-step"><strong>Problem</strong>Concrete thing that's broken</div>
+        <div class="loop-arrow">→</div>
+        <div class="loop-step"><strong>Mental model</strong>The layer that matters</div>
+        <div class="loop-arrow">→</div>
+        <div class="loop-step"><strong>Broken scaffold</strong>Diagnose before looking</div>
+        <div class="loop-arrow">→</div>
+        <div class="loop-step"><strong>Fix</strong>Patch with understanding</div>
+        <div class="loop-arrow">→</div>
+        <div class="loop-step"><strong>Trade-off</strong>When the fix breaks differently</div>
+        <div class="loop-arrow">→</div>
+        <div class="loop-step"><strong>Sprint</strong>Build under constraint</div>
+      </div>
+    </div>
+
+    <div class="spine-card">
+      <div class="spine-label">The Spine App</div>
+      <h3>Archive — a personal snippet store</h3>
+      <p>Every phase builds on one app: you paste content, add a tag, save it, search it. Simple enough to hold in your head, complex enough to touch every layer. By Phase 6, it handles failure, deploys cleanly, and you understand every byte that flows through it.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       PHASE 1 — REQUEST LIFECYCLE
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="phase" id="phase-1">
+    <div class="phase-header">
+      <span class="phase-num">01</span>
+      <div class="phase-title-wrap">
+        <h2>Request Lifecycle</h2>
+        <div class="phase-model">Mental model: what actually happens between click and database?</div>
+      </div>
+      <button class="phase-complete-btn" onclick="completePhase(1, this)">Mark complete</button>
+    </div>
+
+    <div class="mental-model">
+      <div class="mm-label">Mental Model</div>
+      <p>Most bugs live in the seams between layers — not inside any single layer. Before you can fix them, you need to be able to trace the full path a request takes without opening any file.</p>
+      <div class="flow-diagram">
+<span class="highlight">Browser</span>  →  user submits form
+  ↓     <span class="dim">HTTP POST /items  (headers, body, method)</span>
+<span class="highlight">Flask</span>    →  route matches, handler runs
+  ↓     <span class="dim">request.form["content"]  (or KeyError)</span>
+<span class="highlight">DB</span>       →  INSERT INTO items ...
+  ↓     <span class="dim">db.commit()  (or data vanishes)</span>
+<span class="highlight">Response</span> →  302 redirect / JSON / error
+  ↓     <span class="dim">status code matters</span>
+<span class="highlight">Browser</span>  →  follows redirect, re-renders</div>
+      <p>Every arrow above is a place where data can be silently wrong. The browser sends what you told it to. Flask reads what the browser sent. The DB persists what Flask gave it. If anything in the chain is off, the failure may not surface until three layers later.</p>
+    </div>
+
+    <!-- BROKEN SCAFFOLD 1 -->
+    <div class="scaffold">
+      <div class="scaffold-header">
+        <span class="broken-badge">Broken</span>
+        <h3>Archive — the save form does nothing</h3>
+      </div>
+
+      <div class="expect-box">
+        <strong>What you expect</strong>
+        User types content, clicks Save, the item appears in the list. Nothing happens. No error, no feedback. The form submits but the list stays empty.
+      </div>
+
+      <p class="section-note">Read the HTML and Python below. Before revealing the bugs, try to identify what's wrong.</p>
+
+      <div class="broken-code-wrap">
+        <pre><code class="language-html">&lt;!-- templates/index.html --&gt;
+&lt;div class="form-wrap"&gt;
+  &lt;input type="text" placeholder="Paste content here"&gt;
+  &lt;input type="text" id="tag-input" placeholder="Tag (optional)"&gt;
+  &lt;button onclick="submitItem()"&gt;Save&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+function submitItem() {
+  const content = document.getElementById('tag-input').value;
+  const tag = document.getElementById('tag-input').value;
+  fetch('/items', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content, tag })
+  });
+}
+&lt;/script&gt;</code></pre>
+      </div>
+
+      <div class="broken-code-wrap">
+        <pre><code class="language-python"># app.py
+@app.route('/items', methods=['GET'])
+def items():
+    conn = get_db()
+    rows = conn.execute('SELECT * FROM items').fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@app.route('/save', methods=['POST'])
+def save_item():
+    data = request.get_json()
+    content = data['content']
+    tag = data.get('tag', '')
+    conn = get_db()
+    conn.execute('INSERT INTO items (content, tag) VALUES (?, ?)', (content, tag))
+    return jsonify({'status': 'ok'})</code></pre>
+      </div>
+
+      <div class="action-row">
+        <button class="reveal-btn" onclick="toggle(this, 'bugs-1')">Reveal bugs →</button>
+        <button class="fix-btn" onclick="toggle(this, 'fix-1')">See the fix →</button>
+      </div>
+
+      <div class="bugs-list hidden" id="bugs-1">
+        <h4>4 bugs — all in the seams</h4>
+        <div class="bug-item">
+          <span class="bug-num">1</span>
+          <p><strong>JavaScript reads the wrong element.</strong> <code>content</code> is assigned from <code>getElementById('tag-input')</code> — same element as <code>tag</code>. There's no ID on the content input. Both variables hold the tag value; content is always empty.</p>
+        </div>
+        <div class="bug-item">
+          <span class="bug-num">2</span>
+          <p><strong>The POST route doesn't exist at <code>/items</code>.</strong> The JS posts to <code>POST /items</code> but Flask only handles <code>GET /items</code>. The save route is at <code>/save</code> — a different URL. Flask returns 405 Method Not Allowed, which the JS ignores entirely.</p>
+        </div>
+        <div class="bug-item">
+          <span class="bug-num">3</span>
+          <p><strong>No <code>db.commit()</code>.</strong> SQLite requires an explicit commit after write operations. Without it, the INSERT is rolled back when the connection closes. The route returns 200, the insert appears to work, but nothing is saved.</p>
+        </div>
+        <div class="bug-item">
+          <span class="bug-num">4</span>
+          <p><strong>The fetch has no <code>.then()</code> or error handler.</strong> Even if the server returns an error, the frontend silently ignores it. The user gets no feedback on success or failure.</p>
+        </div>
+      </div>
+
+      <div class="fixed-code-wrap hidden" id="fix-1">
+        <pre><code class="language-html">&lt;!-- templates/index.html --&gt;
+&lt;div class="form-wrap"&gt;
+  &lt;input type="text" id="content-input" placeholder="Paste content here"&gt;
+  &lt;input type="text" id="tag-input" placeholder="Tag (optional)"&gt;
+  &lt;button onclick="submitItem()"&gt;Save&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+async function submitItem() {
+  const content = document.getElementById('content-input').value.trim();
+  const tag = document.getElementById('tag-input').value.trim();
+
+  if (!content) {
+    alert('Content cannot be empty.');
+    return;
+  }
+
+  const res = await fetch('/items', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content, tag })
+  });
+
+  if (!res.ok) {
+    alert('Failed to save. Check the console.');
+    return;
+  }
+
+  loadItems(); // refresh the list
+}
+&lt;/script&gt;</code></pre>
+        <pre><code class="language-python"># app.py — unified route, with commit
+@app.route('/items', methods=['GET', 'POST'])
+def items():
+    conn = get_db()
+    if request.method == 'POST':
+        data = request.get_json()
+        content = data.get('content', '').strip()
+        tag = data.get('tag', '').strip()
+        if not content:
+            return jsonify({'error': 'content required'}), 400
+        conn.execute(
+            'INSERT INTO items (content, tag) VALUES (?, ?)', (content, tag)
+        )
+        conn.commit()                       # ← required for SQLite writes
+        return jsonify({'status': 'ok'}), 201
+
+    rows = conn.execute('SELECT * FROM items ORDER BY created_at DESC').fetchall()
+    return jsonify([dict(r) for r in rows])</code></pre>
+      </div>
+
+      <div class="why-box">
+        <div class="why-label">Why this matters</div>
+        <p>Three of these four bugs produce no error. The app appears to run. This is the failure mode that kills debugging hours: the system is lying to you with silence. The habit to build is: after any write operation, immediately verify the data actually exists in the database.</p>
+      </div>
+    </div>
+
+    <!-- TRADE-OFF 1 -->
+    <div class="tradeoff" id="tradeoff-1">
+      <div class="tradeoff-trigger" onclick="toggleTradeoff('tradeoff-1')">
+        <div class="tradeoff-left">
+          <span class="tradeoff-icon">⚠</span>
+          <span class="tradeoff-label">Trade-off&ensp;·&ensp;</span>
+          <span class="tradeoff-title">Consolidating GET and POST on one route feels clean — until it doesn't</span>
+        </div>
+        <span class="tradeoff-chevron">▾</span>
+      </div>
+      <div class="tradeoff-body hidden">
+        <p>Putting <code>GET /items</code> and <code>POST /items</code> on the same route function is correct REST and works fine for small apps. The trade-off appears when you add middleware: rate limiting, auth checks, and caching often need to behave differently per verb. A <code>@cache</code> decorator on the whole route function will also cache POST responses, which is almost never what you want.</p>
+        <p>The cleaner pattern at scale is separate functions connected to the same URL: Flask-RESTful and Flask class-based views do this. For a personal tool, the single function is fine — know the limitation so you recognize it when it causes a bug.</p>
+      </div>
+    </div>
+
+    <!-- SPRINT 1 -->
+    <div class="sprint">
+      <div class="sprint-label">Constraint Sprint · 01</div>
+      <h3>Trace the lifecycle without running anything</h3>
+      <div class="constraint-tag">No code execution allowed</div>
+      <p>Below is a broken network tab output. The user clicked Save. Without running the app, trace which layer is responsible for each symptom and name the exact fix.</p>
+      <div class="plain-code-wrap">
+        <pre><code class="language-bash">POST /items    →  405 Method Not Allowed
+  Request headers:  Content-Type: text/html
+  Request body:     content=hello+world&tag=notes
+  Response:         &lt;!DOCTYPE html&gt; ... Flask default 405 page</code></pre>
+      </div>
+      <ol>
+        <li>What layer produced the 405? What specific Flask config is missing?</li>
+        <li>The Content-Type is <code>text/html</code> but the body looks like form data. What does this mean for <code>request.get_json()</code>? What would you use instead?</li>
+        <li>The body uses <code>&</code> and <code>=</code> separators. This is form encoding, not JSON. Name the two different ways to send this from JS and the matching Flask method to read each.</li>
+        <li>If you fix the 405 but keep the wrong Content-Type, what happens inside the route handler?</li>
+      </ol>
+      <button class="sprint-complete-btn" onclick="completeSprint(this, 1)">Mark complete</button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       PHASE 2 — ROUTE DESIGN
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="phase" id="phase-2">
+    <div class="phase-header">
+      <span class="phase-num">02</span>
+      <div class="phase-title-wrap">
+        <h2>Route Design</h2>
+        <div class="phase-model">Mental model: routes as contracts, HTTP verbs as intent</div>
+      </div>
+      <button class="phase-complete-btn" onclick="completePhase(2, this)">Mark complete</button>
+    </div>
+
+    <div class="mental-model">
+      <div class="mm-label">Mental Model</div>
+      <p>A route is a promise. <code>GET /items</code> promises: "call me and you'll get items, with no side effects." <code>POST /items</code> promises: "send me data and I'll create something." When you collapse those into a single route that does different things based on a query param or body field, you break the promise — and break every tool that relies on it: browser caching, middleware, load balancers, API clients.</p>
+      <div class="flow-diagram">
+<span class="dim">Bad:</span>  POST /do-stuff  { "action": "save" | "delete" | "search" }
+         <span class="dim">↑ one endpoint, behavior hidden in payload</span>
+
+<span class="highlight">Good:</span> GET    /items          → list
+       POST   /items          → create
+       DELETE /items/:id      → destroy
+       GET    /items?tag=ai   → filter (idempotent read)</div>
+      <p>Nouns in URLs, verbs in HTTP methods. The URL identifies the resource. The HTTP method describes what you're doing to it. This isn't convention for its own sake — GET requests can be cached, retried, and prefetched. POST requests cannot.</p>
+    </div>
+
+    <!-- BROKEN SCAFFOLD 2 -->
+    <div class="scaffold">
+      <div class="scaffold-header">
+        <span class="broken-badge">Broken</span>
+        <h3>Archive — one god route for everything</h3>
+      </div>
+
+      <div class="expect-box">
+        <strong>What you expect</strong>
+        The Archive app works — items save, delete, and search all function. But when you add a cache layer, searches start returning stale data. When you add auth middleware, it blocks deletes but also blocks reads. The logic is entangled.
+      </div>
+
+      <div class="broken-code-wrap">
+        <pre><code class="language-python"># app.py — the god route
+@app.route('/archive', methods=['GET', 'POST'])
+def archive():
+    conn = get_db()
+    action = request.args.get('action') or request.form.get('action')
+
+    if action == 'save':
+        content = request.form.get('content')
+        tag = request.form.get('tag', '')
+        conn.execute('INSERT INTO items (content, tag) VALUES (?,?)', (content, tag))
+        conn.commit()
+        return redirect('/archive')
+
+    elif action == 'delete':
+        item_id = request.args.get('id')
+        conn.execute('DELETE FROM items WHERE id=?', (item_id,))
+        conn.commit()
+        return redirect('/archive')
+
+    elif action == 'search':
+        q = request.args.get('q', '')
+        rows = conn.execute(
+            'SELECT * FROM items WHERE content LIKE ?', (f'%{q}%',)
+        ).fetchall()
+        return jsonify([dict(r) for r in rows])
+
+    else:
+        rows = conn.execute('SELECT * FROM items ORDER BY created_at DESC').fetchall()
+        return render_template('index.html', items=[dict(r) for r in rows])</code></pre>
+      </div>
+
+      <div class="action-row">
+        <button class="reveal-btn" onclick="toggle(this, 'bugs-2')">Reveal problems →</button>
+        <button class="fix-btn" onclick="toggle(this, 'fix-2')">See clean design →</button>
+      </div>
+
+      <div class="bugs-list hidden" id="bugs-2">
+        <h4>3 design problems</h4>
+        <div class="bug-item">
+          <span class="bug-num">1</span>
+          <p><strong>DELETE is triggered via GET.</strong> <code>/archive?action=delete&id=5</code> is a GET request. Browsers prefetch GET links. A browser extension, a Slack preview, or a bot crawling your app can silently delete items just by visiting the URL. DELETE must use the DELETE verb or at minimum a POST with CSRF protection.</p>
+        </div>
+        <div class="bug-item">
+          <span class="bug-num">2</span>
+          <p><strong>Caching is impossible.</strong> The same URL <code>GET /archive</code> returns a full HTML page normally but JSON when <code>?action=search</code> is added. Any cache (browser, CDN, Redis) can't know which response to store. Adding <code>@cache</code> to this function would cache either the page or the search results — not both correctly.</p>
+        </div>
+        <div class="bug-item">
+          <span class="bug-num">3</span>
+          <p><strong>Middleware can't target specific operations.</strong> If you add <code>@login_required</code> to this route, it blocks everything — including the public search. You can't protect deletes without also protecting reads. Operations need separate routes to be individually guarded.</p>
+        </div>
+      </div>
+
+      <div class="fixed-code-wrap hidden" id="fix-2">
+        <pre><code class="language-python"># app.py — clean REST design
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/items', methods=['GET'])
+def list_items():
+    q = request.args.get('q', '').strip()
+    conn = get_db()
+    if q:
+        rows = conn.execute(
+            'SELECT * FROM items WHERE content LIKE ? ORDER BY created_at DESC',
+            (f'%{q}%',)
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            'SELECT * FROM items ORDER BY created_at DESC'
+        ).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@app.route('/items', methods=['POST'])
+def create_item():
+    data = request.get_json()
+    content = data.get('content', '').strip()
+    if not content:
+        return jsonify({'error': 'content required'}), 400
+    conn = get_db()
+    conn.execute(
+        'INSERT INTO items (content, tag) VALUES (?, ?)',
+        (content, data.get('tag', '').strip())
+    )
+    conn.commit()
+    return jsonify({'status': 'created'}), 201
+
+@app.route('/items/&lt;int:item_id&gt;', methods=['DELETE'])
+def delete_item(item_id):
+    conn = get_db()
+    conn.execute('DELETE FROM items WHERE id = ?', (item_id,))
+    conn.commit()
+    return jsonify({'status': 'deleted'}), 200</code></pre>
+      </div>
+
+      <div class="why-box">
+        <div class="why-label">Why this matters</div>
+        <p>The god route pattern tends to emerge when you're building fast and the app is small. It works. The cost only appears when you add the second layer of complexity — auth, caching, tests. By that point, refactoring the route design is painful. Getting it right early costs nothing.</p>
+      </div>
+    </div>
+
+    <!-- TRADE-OFF 2 -->
+    <div class="tradeoff" id="tradeoff-2">
+      <div class="tradeoff-trigger" onclick="toggleTradeoff('tradeoff-2')">
+        <div class="tradeoff-left">
+          <span class="tradeoff-icon">⚠</span>
+          <span class="tradeoff-label">Trade-off&ensp;·&ensp;</span>
+          <span class="tradeoff-title">Clean REST assumes stateless clients — that's not always true</span>
+        </div>
+        <span class="tradeoff-chevron">▾</span>
+      </div>
+      <div class="tradeoff-body hidden">
+        <p>Pure REST works well when the frontend manages state and communicates via JSON. If you're using HTMX or server-rendered HTML (Jinja templates), the pattern slightly changes — your routes return HTML fragments, and actions often need to return the updated fragment plus redirect cues. This is called HATEOAS and isn't wrong; it's a deliberate choice for simpler frontends.</p>
+        <p>The key principle holds regardless: separate routes for separate intents. Even with HTMX, <code>DELETE /items/5</code> returning an empty 200 (which HTMX reads as "remove this element") is cleaner than <code>POST /archive?action=delete&id=5</code>. The verb carries meaning that any tool in the chain can act on.</p>
+      </div>
+    </div>
+
+    <!-- SPRINT 2 -->
+    <div class="sprint">
+      <div class="sprint-label">Constraint Sprint · 02</div>
+      <h3>Design the API before writing any code</h3>
+      <div class="constraint-tag">Design only — no implementation</div>
+      <p>You're building a simple URL bookmark manager. Users can save URLs with titles, organize them into named collections, and mark items as read/unread. Design the complete REST API. Write only the route signatures — no code.</p>
+      <ol>
+        <li>List every resource (nouns). There are at least 2.</li>
+        <li>Write the route signatures: <code>METHOD /resource/:param</code></li>
+        <li>For each route: what does a success response look like? What status code?</li>
+        <li>Which routes need auth protection? Which are public?</li>
+        <li>One route on your list is probably a design smell — a verb hiding where a noun should be. Find it and fix it.</li>
+      </ol>
+      <button class="sprint-complete-btn" onclick="completeSprint(this, 2)">Mark complete</button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       PHASE 3 — DATA FLOW
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="phase" id="phase-3">
+    <div class="phase-header">
+      <span class="phase-num">03</span>
+      <div class="phase-title-wrap">
+        <h2>Data Flow</h2>
+        <div class="phase-model">Mental model: request → validate → persist → retrieve → serialize → display</div>
+      </div>
+      <button class="phase-complete-btn" onclick="completePhase(3, this)">Mark complete</button>
+    </div>
+
+    <div class="mental-model">
+      <div class="mm-label">Mental Model</div>
+      <p>Data changes shape at every boundary. A string in a form becomes bytes in HTTP becomes a Python dict becomes a DB row becomes a Python dict again becomes JSON bytes becomes a JavaScript object becomes a DOM string. Each transformation is a place where data can be lost, mistyped, or misread.</p>
+      <div class="flow-diagram">
+<span class="highlight">Browser</span>  →  { content: "hello" }       <span class="dim">(JS object)</span>
+  ↓     <span class="dim">JSON.stringify → HTTP body</span>
+<span class="highlight">Flask</span>    →  request.get_json()          <span class="dim">(Python dict)</span>
+  ↓     <span class="dim">validate → build tuple</span>
+<span class="highlight">SQLite</span>   →  INSERT (id=1, content=...)   <span class="dim">(row)</span>
+  ↓     <span class="dim">fetchall() → sqlite3.Row objects</span>
+<span class="highlight">Flask</span>    →  jsonify([dict(r) for r in rows])
+  ↓     <span class="dim">JSON serialization → HTTP response</span>
+<span class="highlight">Browser</span>  →  response.json() → items.map()</div>
+      <p>The two most common failure points: <strong>SQLite rows are not JSON-serializable</strong> (you must convert to dict), and <strong>column names in your query don't match what the frontend expects</strong>. Both produce silent bugs when the frontend accesses undefined properties.</p>
+    </div>
+
+    <!-- BROKEN SCAFFOLD 3 -->
+    <div class="scaffold">
+      <div class="scaffold-header">
+        <span class="broken-badge">Broken</span>
+        <h3>Archive — items load but display nothing</h3>
+      </div>
+
+      <div class="expect-box">
+        <strong>What you expect</strong>
+        Items saved correctly. The list route runs. The frontend fetches items and loops through them. But the list renders empty — no content, no tags visible — even though the database has rows.
+      </div>
+
+      <div class="broken-code-wrap">
+        <pre><code class="language-python"># app.py — list route
+@app.route('/items', methods=['GET'])
+def list_items():
+    conn = get_db()
+    rows = conn.execute('SELECT id, content, tag, created_at FROM items').fetchall()
+    return jsonify(rows)   # ← what's wrong here?</code></pre>
+      </div>
+
+      <div class="broken-code-wrap">
+        <pre><code class="language-javascript">// static/app.js
+async function loadItems() {
+  const res = await fetch('/items');
+  const items = await res.json();
+  const list = document.getElementById('item-list');
+  list.innerHTML = '';
+  items.forEach(item => {
+    list.innerHTML += `
+      &lt;div class="item"&gt;
+        &lt;p&gt;${item.text}&lt;/p&gt;       &lt;!-- ← what's wrong here? --&gt;
+        &lt;span class="tag"&gt;${item.label}&lt;/span&gt;  &lt;!-- ← and here? --&gt;
+      &lt;/div&gt;
+    `;
+  });
+}</code></pre>
+      </div>
+
+      <div class="action-row">
+        <button class="reveal-btn" onclick="toggle(this, 'bugs-3')">Reveal bugs →</button>
+        <button class="fix-btn" onclick="toggle(this, 'fix-3')">See the fix →</button>
+      </div>
+
+      <div class="bugs-list hidden" id="bugs-3">
+        <h4>3 bugs across the serialization boundary</h4>
+        <div class="bug-item">
+          <span class="bug-num">1</span>
+          <p><strong><code>jsonify(rows)</code> fails.</strong> <code>conn.execute().fetchall()</code> returns a list of <code>sqlite3.Row</code> objects. These are not JSON-serializable. Flask's <code>jsonify</code> will either throw a <code>TypeError</code> or return an empty array depending on Flask version. You must convert: <code>[dict(r) for r in rows]</code>.</p>
+        </div>
+        <div class="bug-item">
+          <span class="bug-num">2</span>
+          <p><strong>Frontend accesses <code>item.text</code>, but the column is named <code>content</code>.</strong> JavaScript won't throw — <code>item.text</code> is <code>undefined</code>, which renders as an empty string. The template silently produces blank items.</p>
+        </div>
+        <div class="bug-item">
+          <span class="bug-num">3</span>
+          <p><strong>Frontend accesses <code>item.label</code>, but the column is named <code>tag</code>.</strong> Same issue — silent undefined, renders blank. These two bugs together produce a list that appears to load (the item wrappers are there) but shows no content — the hardest kind to debug.</p>
+        </div>
+      </div>
+
+      <div class="fixed-code-wrap hidden" id="fix-3">
+        <pre><code class="language-python"># app.py — correct serialization
+@app.route('/items', methods=['GET'])
+def list_items():
+    conn = get_db()
+    rows = conn.execute(
+        'SELECT id, content, tag, created_at FROM items ORDER BY created_at DESC'
+    ).fetchall()
+    return jsonify([dict(r) for r in rows])  # ← convert each Row to dict</code></pre>
+        <pre><code class="language-javascript">// static/app.js — property names match DB column names exactly
+async function loadItems() {
+  const res = await fetch('/items');
+  if (!res.ok) { console.error('Failed to load items'); return; }
+  const items = await res.json();
+  const list = document.getElementById('item-list');
+  list.innerHTML = '';
+  items.forEach(item => {
+    list.innerHTML += `
+      &lt;div class="item"&gt;
+        &lt;p&gt;${item.content ?? '—'}&lt;/p&gt;
+        &lt;span class="tag"&gt;${item.tag || 'untagged'}&lt;/span&gt;
+      &lt;/div&gt;
+    `;
+  });
+}</code></pre>
+      </div>
+
+      <div class="why-box">
+        <div class="why-label">Why this matters</div>
+        <p>The property name mismatch is the #1 silent bug in Flask + JS apps. When you rename a database column, you must update the frontend access pattern too — and there's no compiler to tell you. The defense is to define a serialization function that explicitly maps column names to the shape your frontend expects, so the contract is visible in one place.</p>
+      </div>
+    </div>
+
+    <!-- TRADE-OFF 3 -->
+    <div class="tradeoff" id="tradeoff-3">
+      <div class="tradeoff-trigger" onclick="toggleTradeoff('tradeoff-3')">
+        <div class="tradeoff-left">
+          <span class="tradeoff-icon">⚠</span>
+          <span class="tradeoff-label">Trade-off&ensp;·&ensp;</span>
+          <span class="tradeoff-title">Returning <code>SELECT *</code> is convenient until your table grows</span>
+        </div>
+        <span class="tradeoff-chevron">▾</span>
+      </div>
+      <div class="tradeoff-body hidden">
+        <p>Using <code>SELECT *</code> and returning all columns is fine for a personal tool. In a multi-user app, it becomes a security and performance problem. You might add a <code>user_id</code> column later and accidentally return other users' IDs to every client. Or you might add a <code>raw_content</code> column with large blobs and send megabytes per request.</p>
+        <p>The discipline is to define the response shape explicitly — either in the SQL (<code>SELECT id, content, tag</code>) or in a serialization function. This gives you a single place to audit what you're leaking and control the payload size. For Archive as a personal tool, <code>SELECT *</code> is perfectly fine — just know the tradeoff you're accepting.</p>
+      </div>
+    </div>
+
+    <!-- SPRINT 3 -->
+    <div class="sprint">
+      <div class="sprint-label">Constraint Sprint · 03</div>
+      <h3>Fix the shape mismatch without touching the database</h3>
+      <div class="constraint-tag">No schema changes allowed</div>
+      <p>Your Archive database has columns named <code>body</code>, <code>category</code>, and <code>ts</code>. Your frontend already uses <code>item.content</code>, <code>item.tag</code>, and <code>item.created_at</code> throughout 12 different JS functions.</p>
+      <ol>
+        <li>Write a Python function <code>serialize_item(row)</code> that converts a SQLite Row to the shape the frontend expects, without changing any column names.</li>
+        <li>Where exactly should you call this function? In the route, in a helper, in the query? Explain why.</li>
+        <li>What happens if you add a new column to the DB later? What breaks and where? How does your serialization function help or hurt?</li>
+      </ol>
+      <button class="sprint-complete-btn" onclick="completeSprint(this, 3)">Mark complete</button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       PHASE 4 — STATE TAXONOMY
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="phase" id="phase-4">
+    <div class="phase-header">
+      <span class="phase-num">04</span>
+      <div class="phase-title-wrap">
+        <h2>State Taxonomy</h2>
+        <div class="phase-model">Mental model: where data lives determines who can access it, when it disappears, and who owns truth</div>
+      </div>
+      <button class="phase-complete-btn" onclick="completePhase(4, this)">Mark complete</button>
+    </div>
+
+    <div class="mental-model">
+      <div class="mm-label">Mental Model</div>
+      <p>Every piece of data in your app lives somewhere. That location determines: how long it survives, who can access it, whether it's shareable, and who is the source of truth. Putting state in the wrong place causes bugs that are hard to reproduce because they depend on user behavior and tab state.</p>
+      <div class="flow-diagram">
+<span class="dim">Most durable, most shareable</span>
+  ↓
+<span class="highlight">Database</span>      persistent, multi-user, source of truth
+<span class="highlight">URL params</span>    survives refresh, shareable, bookmarkable
+<span class="highlight">localStorage</span>  survives close, single browser, no server
+<span class="highlight">sessionStorage</span> survives refresh, lost on close
+<span class="highlight">JS variables</span>  lost on refresh, tab-scoped, fast
+  ↓
+<span class="dim">Least durable, least shareable</span></div>
+      <p>The rule: put state as high up this ladder as it needs to go, and no higher. "Currently selected item" can live in the URL. User preferences can live in localStorage. A loading spinner state lives in a JS variable. Trying to store user preferences in a JS variable means they reset every refresh.</p>
+    </div>
+
+    <!-- BROKEN SCAFFOLD 4 -->
+    <div class="scaffold">
+      <div class="scaffold-header">
+        <span class="broken-badge">Broken</span>
+        <h3>Archive — the selected item forgets itself</h3>
+      </div>
+
+      <div class="expect-box">
+        <strong>What you expect</strong>
+        User clicks an item to view it in a detail panel. They refresh the page to share the URL with someone. The detail panel is empty — the selection is gone. The URL hasn't changed, so there's nothing to share. The feature is effectively broken for any collaboration or deep-linking.
+      </div>
+
+      <div class="broken-code-wrap">
+        <pre><code class="language-javascript">// static/app.js — state in wrong location
+let selectedItemId = null;   // ← lives only in memory
+
+function selectItem(id) {
+  selectedItemId = id;
+  renderDetailPanel(id);      // updates the UI
+}
+
+async function renderDetailPanel(id) {
+  const res = await fetch(`/items/${id}`);
+  const item = await res.json();
+  document.getElementById('detail').innerHTML = `
+    &lt;h2&gt;${item.content}&lt;/h2&gt;
+    &lt;p&gt;Tag: ${item.tag}&lt;/p&gt;
+  `;
+}
+
+// On load — nothing. selectedItemId is null.
+// URL: /  →  no item highlighted, detail panel blank
+window.addEventListener('load', () =&gt; {
+  loadItems();
+});</code></pre>
+      </div>
+
+      <div class="action-row">
+        <button class="reveal-btn" onclick="toggle(this, 'bugs-4')">Reveal the fix pattern →</button>
+        <button class="fix-btn" onclick="toggle(this, 'fix-4')">See the fix →</button>
+      </div>
+
+      <div class="bugs-list hidden" id="bugs-4">
+        <h4>One design error, two symptoms</h4>
+        <div class="bug-item">
+          <span class="bug-num">1</span>
+          <p><strong>Selection state belongs in the URL, not a JS variable.</strong> A selected item is a shareable, bookmarkable, refresh-safe state. The URL <code>/?item=5</code> communicates selection to the server on load, survives refresh, and can be copied. A JS variable is reset every time the page loads — it's the wrong durability level for this use case.</p>
+        </div>
+        <div class="bug-item">
+          <span class="bug-num">2</span>
+          <p><strong>The load handler doesn't read URL state.</strong> Even if the URL had <code>?item=5</code>, the current load handler ignores it. On load, you must read the URL, parse the item ID, and render accordingly — making the URL the single source of truth.</p>
+        </div>
+      </div>
+
+      <div class="fixed-code-wrap hidden" id="fix-4">
+        <pre><code class="language-javascript">// static/app.js — URL as source of truth for selection
+function getSelectedId() {
+  return new URLSearchParams(window.location.search).get('item');
+}
+
+function selectItem(id) {
+  // Update URL without page reload
+  const url = new URL(window.location);
+  url.searchParams.set('item', id);
+  window.history.pushState({}, '', url);
+  renderDetailPanel(id);
+}
+
+async function renderDetailPanel(id) {
+  if (!id) {
+    document.getElementById('detail').innerHTML = '&lt;p&gt;Select an item.&lt;/p&gt;';
+    return;
+  }
+  const res = await fetch(`/items/${id}`);
+  if (!res.ok) { return; }
+  const item = await res.json();
+  document.getElementById('detail').innerHTML = `
+    &lt;h2&gt;${item.content}&lt;/h2&gt;
+    &lt;p&gt;Tag: ${item.tag || '—'}&lt;/p&gt;
+  `;
+}
+
+window.addEventListener('load', async () => {
+  await loadItems();
+  const selectedId = getSelectedId();  // Read from URL on load
+  renderDetailPanel(selectedId);       // Restore selection state
+});</code></pre>
+      </div>
+
+      <div class="why-box">
+        <div class="why-label">Why this matters</div>
+        <p>State in JS variables is invisible to the outside world — no sharing, no deep-linking, no refresh survival. Every time you're about to use a JS variable, ask: "Would a user ever want to refresh and have this still be true?" If yes, it belongs in the URL or localStorage at minimum.</p>
+      </div>
+    </div>
+
+    <!-- TRADE-OFF 4 -->
+    <div class="tradeoff" id="tradeoff-4">
+      <div class="tradeoff-trigger" onclick="toggleTradeoff('tradeoff-4')">
+        <div class="tradeoff-left">
+          <span class="tradeoff-icon">⚠</span>
+          <span class="tradeoff-label">Trade-off&ensp;·&ensp;</span>
+          <span class="tradeoff-title">URL state gets messy when there are multiple simultaneous selections</span>
+        </div>
+        <span class="tradeoff-chevron">▾</span>
+      </div>
+      <div class="tradeoff-body hidden">
+        <p>URL params are ideal for single-dimension state: selected item, active filter, current page. They break down when state becomes complex: multi-select, unsaved form drafts, UI layout preferences. At that point, localStorage becomes appropriate — it's still durable across refresh, just not shareable.</p>
+        <p>Unsaved form data is a common edge case. If a user half-fills a form and refreshes, should the data survive? For a short form, probably not. For a long form, losing it is painful — localStorage autosave is reasonable. The rule isn't "always use the URL" — it's "match durability and shareability requirements to the right mechanism."</p>
+      </div>
+    </div>
+
+    <!-- SPRINT 4 -->
+    <div class="sprint">
+      <div class="sprint-label">Constraint Sprint · 04</div>
+      <h3>State audit — where should each piece live?</h3>
+      <div class="constraint-tag">Classification exercise</div>
+      <p>For each piece of state below, decide where it should live: <strong>DB / URL / localStorage / sessionStorage / JS variable</strong>. Explain why in one sentence. Some have more than one correct answer — note the trade-off.</p>
+      <ol>
+        <li>Whether the user has dismissed the "Welcome" banner</li>
+        <li>The search query currently in the search box</li>
+        <li>The user's selected color theme (light/dark)</li>
+        <li>Which tag filter is active in the items list</li>
+        <li>Whether the item detail panel is expanded or collapsed</li>
+        <li>The content of an item the user is currently editing (unsaved)</li>
+        <li>Whether an async fetch is currently in-flight (loading spinner)</li>
+        <li>The total count of items a user has saved across all sessions</li>
+      </ol>
+      <button class="sprint-complete-btn" onclick="completeSprint(this, 4)">Mark complete</button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       PHASE 5 — FAILURE HANDLING
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="phase" id="phase-5">
+    <div class="phase-header">
+      <span class="phase-num">05</span>
+      <div class="phase-title-wrap">
+        <h2>Failure Handling</h2>
+        <div class="phase-model">Mental model: fail at the right layer, fail visibly, recover gracefully</div>
+      </div>
+      <button class="phase-complete-btn" onclick="completePhase(5, this)">Mark complete</button>
+    </div>
+
+    <div class="mental-model">
+      <div class="mm-label">Mental Model</div>
+      <p>Happy path code is easy. Production apps fail constantly: the database is locked, the user sent malformed data, the API you depend on is down, the disk is full. The difference between a resilient app and a fragile one is not fewer failures — it's visible, recoverable failures.</p>
+      <div class="flow-diagram">
+<span class="dim">Wrong:</span>  failure happens → silent 200 → user confused
+<span class="dim">Wrong:</span>  failure happens → unhandled exception → 500 stack trace exposed
+
+<span class="highlight">Right:</span>  validate input    → return 400 + reason (user's fault)
+        catch DB error    → return 503 + generic message (our fault)
+        frontend checks status → show specific, actionable message
+        log the real error server-side → never leak it to client</div>
+      <p>The HTTP status code is part of the API contract. A route that returns 200 with <code>{"error": "something went wrong"}</code> in the body is broken by design — it tells every HTTP client (browser, fetch, load balancer) that the request succeeded.</p>
+    </div>
+
+    <!-- BROKEN SCAFFOLD 5 -->
+    <div class="scaffold">
+      <div class="scaffold-header">
+        <span class="broken-badge">Broken</span>
+        <h3>Archive — errors are invisible until they aren't</h3>
+      </div>
+
+      <div class="expect-box">
+        <strong>What you expect</strong>
+        The save route seems to work. But when the database file is locked (another process writing), the app crashes with an unhandled exception that exposes the full stack trace to the user. Empty content saves silently. All errors return 200.
+      </div>
+
+      <div class="broken-code-wrap">
+        <pre><code class="language-python"># app.py — failure-blind route
+@app.route('/items', methods=['POST'])
+def create_item():
+    data = request.get_json()
+    content = data['content']        # ← KeyError if missing
+    tag = data.get('tag', '')
+    conn = get_db()
+    conn.execute(
+        'INSERT INTO items (content, tag) VALUES (?, ?)', (content, tag)
+    )
+    conn.commit()
+    return jsonify({'message': 'saved'})   # ← always 200, even on error</code></pre>
+      </div>
+
+      <div class="broken-code-wrap">
+        <pre><code class="language-javascript">// static/app.js — failure-blind fetch
+async function submitItem() {
+  const content = document.getElementById('content-input').value;
+  await fetch('/items', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content })
+  });
+  loadItems();   // ← runs whether save succeeded or not
+}</code></pre>
+      </div>
+
+      <div class="action-row">
+        <button class="reveal-btn" onclick="toggle(this, 'bugs-5')">Reveal failures →</button>
+        <button class="fix-btn" onclick="toggle(this, 'fix-5')">See resilient version →</button>
+      </div>
+
+      <div class="bugs-list hidden" id="bugs-5">
+        <h4>4 failure modes</h4>
+        <div class="bug-item">
+          <span class="bug-num">1</span>
+          <p><strong><code>data['content']</code> throws <code>KeyError</code></strong> if the JSON body doesn't have a <code>content</code> field, or if <code>request.get_json()</code> returns <code>None</code> (wrong Content-Type). Flask will return a 500 Internal Server Error — which leaks stack information and is the wrong status code for a client mistake.</p>
+        </div>
+        <div class="bug-item">
+          <span class="bug-num">2</span>
+          <p><strong>No input validation.</strong> Empty string content saves successfully. A 10MB content string saves successfully. There's no guard on what enters the database.</p>
+        </div>
+        <div class="bug-item">
+          <span class="bug-num">3</span>
+          <p><strong>No <code>try/except</code> around the DB write.</strong> If the SQLite file is locked, read-only, or corrupted, an unhandled <code>sqlite3.OperationalError</code> surfaces as a 500 with the raw error. The right response is 503 Service Unavailable with a safe, generic message.</p>
+        </div>
+        <div class="bug-item">
+          <span class="bug-num">4</span>
+          <p><strong>Frontend calls <code>loadItems()</code> unconditionally.</strong> If the save fails, the item list refreshes anyway — which might show stale data and gives no feedback that the save failed. The frontend must check <code>res.ok</code> before proceeding.</p>
+        </div>
+      </div>
+
+      <div class="fixed-code-wrap hidden" id="fix-5">
+        <pre><code class="language-python"># app.py — resilient route
+import sqlite3
+import logging
+
+@app.route('/items', methods=['POST'])
+def create_item():
+    data = request.get_json(silent=True)  # returns None instead of raising
+    if not data:
+        return jsonify({'error': 'Invalid JSON body'}), 400
+
+    content = data.get('content', '').strip()
+    if not content:
+        return jsonify({'error': 'content is required'}), 400
+    if len(content) > 10_000:
+        return jsonify({'error': 'content too long (max 10,000 chars)'}), 400
+
+    tag = data.get('tag', '').strip()[:50]  # truncate silently
+
+    try:
+        conn = get_db()
+        conn.execute(
+            'INSERT INTO items (content, tag) VALUES (?, ?)', (content, tag)
+        )
+        conn.commit()
+        return jsonify({'status': 'created'}), 201
+    except sqlite3.OperationalError as e:
+        logging.error(f'DB write failed: {e}')          # log real error
+        return jsonify({'error': 'Service unavailable'}), 503  # safe message</code></pre>
+        <pre><code class="language-javascript">// static/app.js — failure-aware fetch
+async function submitItem() {
+  const content = document.getElementById('content-input').value.trim();
+  if (!content) {
+    showError('Please enter some content.');
+    return;
+  }
+
+  let res;
+  try {
+    res = await fetch('/items', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content })
+    });
+  } catch (networkErr) {
+    showError('Network error — are you online?');
+    return;
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    showError(body.error || `Save failed (${res.status})`);
+    return;
+  }
+
+  document.getElementById('content-input').value = '';
+  loadItems();  // only refresh on success
+}</code></pre>
+      </div>
+
+      <div class="why-box">
+        <div class="why-label">Why this matters</div>
+        <p>The rule: <strong>log what happened, return what the client should do about it.</strong> Never send internal error details to the client — they're a security leak and a support burden. Never send 200 for a failure — it breaks every tool that reads status codes. The two-level error pattern (specific 4xx for client mistakes, generic 5xx for server failures) gives you good behavior in both cases.</p>
+      </div>
+    </div>
+
+    <!-- TRADE-OFF 5 -->
+    <div class="tradeoff" id="tradeoff-5">
+      <div class="tradeoff-trigger" onclick="toggleTradeoff('tradeoff-5')">
+        <div class="tradeoff-left">
+          <span class="tradeoff-icon">⚠</span>
+          <span class="tradeoff-label">Trade-off&ensp;·&ensp;</span>
+          <span class="tradeoff-title">Defensive validation everywhere creates a different bug: over-rejection</span>
+        </div>
+        <span class="tradeoff-chevron">▾</span>
+      </div>
+      <div class="tradeoff-body hidden">
+        <p>Heavy input validation is right for untrusted public APIs. For a personal tool or internal app, it can become friction — you block yourself from saving valid edge cases because you were too strict. A 10,000 char limit was reasonable, but maybe you want to archive a long essay. A "no empty content" rule blocks saving a tag-only item.</p>
+        <p>The right granularity of validation depends on your threat model. For public apps: validate everything, be strict. For personal tools: validate the things that would corrupt the database or cause silent data loss; be lenient about the rest. The key insight is that validation is a policy decision, not just a safety decision — and policies should be proportional to the actual risk.</p>
+      </div>
+    </div>
+
+    <!-- SPRINT 5 -->
+    <div class="sprint">
+      <div class="sprint-label">Constraint Sprint · 05</div>
+      <h3>Break your own app in 5 different ways</h3>
+      <div class="constraint-tag">Adversarial thinking</div>
+      <p>Take your Archive app and deliberately cause 5 different failure modes. For each: describe what breaks, what the user sees, what the logs show, and what the fix is.</p>
+      <ol>
+        <li><strong>Send a POST with no Content-Type header.</strong> What does Flask's <code>request.get_json()</code> return?</li>
+        <li><strong>Delete the <code>items</code> table, then load the page.</strong> What's the user experience? What should it be?</li>
+        <li><strong>Send content with an HTML <code>&lt;script&gt;</code> tag.</strong> Where does the script execute? How do you prevent it?</li>
+        <li><strong>Make 50 simultaneous save requests.</strong> Do any fail? Do all commits land? Why might some be lost?</li>
+        <li><strong>Rename the <code>tag</code> column to <code>category</code> in the DB.</strong> What breaks, where, and when?</li>
+      </ol>
+      <button class="sprint-complete-btn" onclick="completeSprint(this, 5)">Mark complete</button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       PHASE 6 — DEPLOYMENT REALITY
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="phase" id="phase-6">
+    <div class="phase-header">
+      <span class="phase-num">06</span>
+      <div class="phase-title-wrap">
+        <h2>Deployment Reality</h2>
+        <div class="phase-model">Mental model: the gap between your machine and a server is wider than you think</div>
+      </div>
+      <button class="phase-complete-btn" onclick="completePhase(6, this)">Mark complete</button>
+    </div>
+
+    <div class="mental-model">
+      <div class="mm-label">Mental Model</div>
+      <p>Your local machine is a lie. It has your Python version, your file paths, your environment variables, your persistent disk. A deployment server has none of those by default. Every "works on my machine" bug is a missing assumption about the environment.</p>
+      <div class="flow-diagram">
+<span class="dim">Local assumptions that break in prod:</span>
+
+<span class="highlight">File paths</span>   C:\Users\abhim\...  →  /app/  (Linux, different root)
+<span class="highlight">Env vars</span>     .env file loaded    →  not loaded unless explicitly set
+<span class="highlight">SQLite disk</span>  persists forever    →  ephemeral on Render/Railway (resets on deploy)
+<span class="highlight">Debug mode</span>   debug=True is fine   →  exposes code and crashes to the internet
+<span class="highlight">Port</span>         app.run(port=5000)   →  production uses $PORT env variable
+<span class="highlight">Workers</span>      1 thread, 1 process  →  gunicorn uses multiple workers (SQLite write contention)</div>
+      <p>The fix for most of these is the same: read from environment variables, not hardcoded values. The environment becomes the configuration, and the same code runs correctly in every context.</p>
+    </div>
+
+    <!-- BROKEN SCAFFOLD 6 -->
+    <div class="scaffold">
+      <div class="scaffold-header">
+        <span class="broken-badge">Broken</span>
+        <h3>Archive — works locally, fails in production</h3>
+      </div>
+
+      <div class="expect-box">
+        <strong>What you expect</strong>
+        You push to Railway. The build succeeds, the deploy succeeds. The app loads — but all saves fail silently. No items appear. No errors in the UI. After a re-deploy, all previous items vanish.
+      </div>
+
+      <div class="broken-code-wrap">
+        <pre><code class="language-python"># app.py — production landmines
+import sqlite3
+import os
+
+# ← BUG 1: absolute Windows path, breaks on Linux
+DB_PATH = 'C:\\Users\\abhim\\projects\\archive\\archive.db'
+
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+# ← BUG 2: debug=True in production
+# ← BUG 3: hardcoded port, ignores $PORT
+app.run(debug=True, host='0.0.0.0', port=5000)
+
+# requirements.txt is missing gunicorn
+# No Procfile or railway.toml</code></pre>
+      </div>
+
+      <div class="broken-code-wrap">
+        <pre><code class="language-python"># config — no env var discipline
+GEMINI_API_KEY = 'AIzaSy...'        # ← BUG 4: secret in source code
+DATABASE_URL = 'sqlite:///local.db' # ← not used, inconsistent with DB_PATH</code></pre>
+      </div>
+
+      <div class="action-row">
+        <button class="reveal-btn" onclick="toggle(this, 'bugs-6')">Reveal issues →</button>
+        <button class="fix-btn" onclick="toggle(this, 'fix-6')">See production-ready version →</button>
+      </div>
+
+      <div class="bugs-list hidden" id="bugs-6">
+        <h4>4 deployment bugs</h4>
+        <div class="bug-item">
+          <span class="bug-num">1</span>
+          <p><strong>Hardcoded Windows path.</strong> <code>C:\Users\abhim\...</code> does not exist on a Linux server. Every database operation fails with <code>OperationalError: unable to open database file</code>. Use a relative path like <code>./archive.db</code> or better, read from an env var so you can point to different locations in dev vs. prod.</p>
+        </div>
+        <div class="bug-item">
+          <span class="bug-num">2</span>
+          <p><strong><code>debug=True</code> in production.</strong> Flask's debug mode shows interactive stack traces with a REPL in the browser when an exception occurs. Anyone who can trigger an error can execute arbitrary Python code on your server. Always set <code>debug=False</code> in production — read it from an env var.</p>
+        </div>
+        <div class="bug-item">
+          <span class="bug-num">3</span>
+          <p><strong>SQLite on ephemeral disk.</strong> Railway, Render, and Fly.io reset the filesystem on each deploy. SQLite stores data in a file. Data saved between deploys is lost. For persistent data on these platforms, use a hosted database (Railway PostgreSQL, Supabase) or mount a persistent volume.</p>
+        </div>
+        <div class="bug-item">
+          <span class="bug-num">4</span>
+          <p><strong>API key in source code.</strong> If this repo is pushed to GitHub, even privately, the key is compromised. Rotate immediately. Store all secrets in environment variables — never in code files.</p>
+        </div>
+      </div>
+
+      <div class="fixed-code-wrap hidden" id="fix-6">
+        <pre><code class="language-python"># app.py — production-ready config
+import os
+import sqlite3
+
+# Read everything from env vars, with sensible local defaults
+DB_PATH      = os.environ.get('DB_PATH', './archive.db')
+DEBUG        = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+PORT         = int(os.environ.get('PORT', 5000))
+API_KEY      = os.environ.get('GEMINI_API_KEY')  # None if not set — fail loudly
+
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+if __name__ == '__main__':
+    app.run(debug=DEBUG, host='0.0.0.0', port=PORT)</code></pre>
+        <pre><code class="language-bash"># .env  (local only — in .gitignore)
+DB_PATH=./archive.db
+FLASK_DEBUG=true
+GEMINI_API_KEY=AIzaSy...
+
+# Railway dashboard → Variables
+DB_PATH=/app/data/archive.db   # or use Railway's PostgreSQL addon
+FLASK_DEBUG=false
+GEMINI_API_KEY=AIzaSy...</code></pre>
+        <pre><code class="language-bash"># requirements.txt — add gunicorn for production
+flask==3.0.0
+gunicorn==21.2.0
+
+# Procfile (Railway/Render/Heroku)
+web: gunicorn app:app --workers=1 --bind=0.0.0.0:$PORT
+
+# Note: --workers=1 for SQLite (multi-worker = write contention)
+# Switch to PostgreSQL before increasing workers</code></pre>
+      </div>
+
+      <div class="why-box">
+        <div class="why-label">Why this matters</div>
+        <p>The reason production deployments fail isn't usually bad code — it's missing environment assumptions. The defense is simple: every value that can differ between environments (paths, ports, keys, flags) must come from an environment variable. Code is identical everywhere; only the environment changes. This is the Twelve-Factor App principle and it eliminates an entire class of deployment bugs.</p>
+      </div>
+    </div>
+
+    <!-- TRADE-OFF 6 -->
+    <div class="tradeoff" id="tradeoff-6">
+      <div class="tradeoff-trigger" onclick="toggleTradeoff('tradeoff-6')">
+        <div class="tradeoff-left">
+          <span class="tradeoff-icon">⚠</span>
+          <span class="tradeoff-label">Trade-off&ensp;·&ensp;</span>
+          <span class="tradeoff-title">SQLite is actually fine in production — sometimes</span>
+        </div>
+        <span class="tradeoff-chevron">▾</span>
+      </div>
+      <div class="tradeoff-body hidden">
+        <p>The conventional wisdom is "never SQLite in production." This is too strong. SQLite handles thousands of reads per second and is used in production by companies like Expensify and Basecamp (via Litestream). For a single-server app with low write volume, it's reliable and operationally simpler than running PostgreSQL.</p>
+        <p>The actual constraints are: single writer at a time (WAL mode relaxes this), no connection pooling across multiple processes, and you need a persistent disk. If your host provides persistent volumes (Fly.io does, Railway does with mounted volumes), SQLite with WAL mode and regular backups via Litestream is a legitimate production choice for apps under moderate load. Move to PostgreSQL when you need horizontal scaling or when concurrent writes become a bottleneck — not before.</p>
+      </div>
+    </div>
+
+    <!-- SPRINT 6 -->
+    <div class="sprint">
+      <div class="sprint-label">Constraint Sprint · 06</div>
+      <h3>Pre-flight checklist — deploy without surprises</h3>
+      <div class="constraint-tag">No deploying until this is complete</div>
+      <p>Before pushing Archive to Railway (or any host), run through each item. Every "no" is a deployment bug waiting to happen.</p>
+      <ol>
+        <li><strong>Path audit:</strong> Search your code for any string containing <code>C:\</code>, <code>/Users/</code>, or <code>/home/</code>. Every one must be replaced with an env var.</li>
+        <li><strong>Debug audit:</strong> Is <code>debug=True</code> anywhere in your app? Is it gated on an env var?</li>
+        <li><strong>Secret audit:</strong> Run <code>grep -r "API_KEY\|SECRET\|PASSWORD" .</code> in your project directory. Any match that isn't reading from <code>os.environ</code> is a leak.</li>
+        <li><strong>Port audit:</strong> Is your app's port hardcoded, or reading from <code>os.environ.get('PORT')</code>?</li>
+        <li><strong>Persistence audit:</strong> Does your app write files to disk? If so, what happens on re-deploy? Do you need a persistent volume or a hosted DB?</li>
+        <li><strong>Startup test:</strong> Delete your local <code>.env</code> file temporarily. Does your app fail with a clear error, or silently misbehave?</li>
+      </ol>
+      <button class="sprint-complete-btn" onclick="completeSprint(this, 6)">Mark complete</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+<script>
+
+// ── COMPLETION STATE (in-memory) ─────────────────────────
+const completed = { phases: new Set(), sprints: new Set() };
+
+function completePhase(n, btn) {
+  completed.phases.add(n);
+  btn.textContent = '✓ Complete';
+  btn.classList.add('done');
+  const check = document.getElementById(`check-${n}`);
+  if (check) check.parentElement.classList.add('completed');
+  updateProgress();
+}
+
+function completeSprint(btn, n) {
+  completed.sprints.add(n);
+  btn.textContent = '✓ Done';
+  btn.classList.add('done');
+}
+
+function updateProgress() {
+  const count = completed.phases.size;
+  const pct = Math.round((count / 6) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-count').textContent = `${count} / 6`;
+}
+
+// ── TOGGLE HELPERS ────────────────────────────────────────
+function toggle(btn, targetId) {
+  const el = document.getElementById(targetId);
+  const wasHidden = el.classList.contains('hidden');
+  el.classList.toggle('hidden');
+
+  // Store original label on first call
+  if (!btn.dataset.original) btn.dataset.original = btn.textContent;
+
+  if (wasHidden) {
+    btn.textContent = '↑ Collapse';
+    Prism.highlightAllUnder(el);
+  } else {
+    btn.textContent = btn.dataset.original;
+  }
+}
+
+function toggleTradeoff(id) {
+  const el = document.getElementById(id);
+  const body = el.querySelector('.tradeoff-body');
+  const isOpen = el.classList.toggle('open');
+  body.classList.toggle('hidden', !isOpen);
+}
+
+// ── ACTIVE NAV HIGHLIGHT (scroll-spy) ────────────────────
+const phases = [1,2,3,4,5,6];
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      const active = document.querySelector(`[href="#${id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+
+document.querySelectorAll('.phase').forEach(el => observer.observe(el));
+
+// ── INIT ──────────────────────────────────────────────────
+Prism.highlightAll();
+
+</script>
+</body>
+</html>

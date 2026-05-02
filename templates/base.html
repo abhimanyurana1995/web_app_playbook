@@ -22,7 +22,7 @@
     <div class="header-sub">It all starts with one idea.</div>
   </div>
   <div class="header-right">
-    <div class="progress-badge"><span id="progressCount">0</span> / <span id="progressTotal">42</span> explored</div>
+    <div class="progress-badge"><span id="progressCount">0</span> / <span id="progressTotal">{{ total_topics }}</span> explored</div>
     <div class="mode-toggle">
       <button class="mode-btn {% if request.path == '/' %}active{% endif %}" data-mode="reference"
               onclick="window.location='/'">Reference</button>
@@ -79,6 +79,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 {% block extra_js %}{% endblock %}

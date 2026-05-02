@@ -5,7 +5,7 @@ const chatInput    = document.getElementById("chatInput");
 const chatSend     = document.getElementById("chatSend");
 const chatEmpty    = document.getElementById("chatEmpty");
 
-let chatHistory = [];  // in-memory only
+let chatHistory = [];  // [{role: "user"|"assistant", content: "..."}]
 let streaming   = false;
 
 function openChat() {
@@ -53,13 +53,14 @@ async function sendMessage() {
 
   // Add user bubble
   appendBubble("user", text);
+  chatHistory.push({ role: "user", content: text });
 
   // Add streaming assistant bubble
   const assistantBubble = appendBubble("assistant", "");
   streaming = true;
   chatSend.disabled = true;
 
-  // Show typing indicator temporarily
+  // Typing indicator
   const typingEl = document.createElement("div");
   typingEl.className = "chat-typing";
   typingEl.innerHTML = "<span></span><span></span><span></span>";
@@ -67,42 +68,73 @@ async function sendMessage() {
   scrollToBottom();
 
   const topicId = currentTopicId || "";
-  const url = `/api/chat/stream?message=${encodeURIComponent(text)}&topic_id=${encodeURIComponent(topicId)}`;
-  const es = new EventSource(url);
+  let fullResponse = "";
 
-  es.onmessage = e => {
-    if (e.data === "[DONE]") {
-      es.close();
-      typingEl.remove();
-      streaming = false;
-      chatSend.disabled = false;
-      scrollToBottom();
-      return;
+  try {
+    const res = await fetch("/api/chat/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: text,
+        topic_id: topicId,
+        history: chatHistory.slice(0, -1)   // all turns except the current user msg
+      })
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer    = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop();   // keep incomplete last line
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const raw = line.slice(6);
+        if (raw === "[DONE]") {
+          if (typingEl.parentNode) typingEl.remove();
+          chatHistory.push({ role: "assistant", content: fullResponse });
+          streaming = false;
+          chatSend.disabled = false;
+          scrollToBottom();
+          return;
+        }
+        try {
+          const payload = JSON.parse(raw);
+          if (typingEl.parentNode) typingEl.remove();
+          fullResponse += payload.token || "";
+          assistantBubble.innerHTML = marked.parse(fullResponse);
+          scrollToBottom();
+        } catch {}
+      }
     }
-    try {
-      const payload = JSON.parse(e.data);
-      typingEl.remove();
-      assistantBubble.textContent += payload.token || "";
-      scrollToBottom();
-    } catch {}
-  };
-
-  es.onerror = () => {
-    es.close();
-    typingEl.remove();
-    streaming = false;
-    chatSend.disabled = false;
+  } catch (err) {
     if (!assistantBubble.textContent) {
       assistantBubble.textContent = "⚠️ Could not connect to chat. Make sure Ollama is running.";
     }
+  } finally {
+    if (typingEl.parentNode) typingEl.remove();
+    streaming = false;
+    chatSend.disabled = false;
     scrollToBottom();
-  };
+  }
 }
 
 function appendBubble(role, text) {
   const div = document.createElement("div");
   div.className = `chat-msg ${role}`;
-  div.textContent = text;
+  if (role === "assistant" && text) {
+    div.innerHTML = marked.parse(text);
+  } else {
+    div.textContent = text;
+  }
   chatMessages.appendChild(div);
   scrollToBottom();
   return div;
